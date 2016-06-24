@@ -1,0 +1,4 @@
+compiler/testData/cli/jvm/apiVersion.kt:2:19: error: this declaration is only available since Kotlin 1.1 and cannot be used with the specified API version 1.0
+    String::class.isInstance(42)
+                  ^
+COMPILATION_ERROR

@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.asJava.DuplicateJvmSignatureUtilKt;
 import org.jetbrains.kotlin.config.LanguageFeature;
+import org.jetbrains.kotlin.config.LanguageVersion;
 import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl;
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor;
@@ -195,6 +196,13 @@ public abstract class BaseDiagnosticsTest
                     return enabled;
                 }
                 return LanguageVersionSettingsImpl.LATEST.supportsFeature(feature);
+            }
+
+            @NotNull
+            @Override
+            public LanguageVersion getApiVersion() {
+                // TODO: support API version in diagnostic tests
+                return LanguageVersion.LATEST;
             }
         };
     }

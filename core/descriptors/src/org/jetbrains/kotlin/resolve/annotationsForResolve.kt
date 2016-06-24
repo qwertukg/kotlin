@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.resolve.descriptorUtil
 
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationWithTarget
@@ -30,6 +31,7 @@ private val EXACT_ANNOTATION_FQ_NAME = FqName("kotlin.internal.Exact")
 private val LOW_PRIORITY_IN_OVERLOAD_RESOLUTION_FQ_NAME = FqName("kotlin.internal.LowPriorityInOverloadResolution")
 private val HIDES_MEMBERS_ANNOTATION_FQ_NAME = FqName("kotlin.internal.HidesMembers")
 private val ONLY_INPUT_TYPES_FQ_NAME = FqName("kotlin.internal.OnlyInputTypes")
+private val SINCE_FQ_NAME = FqName("kotlin.internal.Since")
 
 // @HidesMembers annotation only has effect for members with these names
 val HIDES_MEMBERS_NAME_LIST = setOf(Name.identifier("forEach"))
@@ -48,6 +50,9 @@ fun CallableDescriptor.hasLowPriorityInOverloadResolution(): Boolean = annotatio
 fun CallableDescriptor.hasHidesMembersAnnotation(): Boolean = annotations.hasAnnotation(HIDES_MEMBERS_ANNOTATION_FQ_NAME)
 
 fun TypeParameterDescriptor.hasOnlyInputTypesAnnotation(): Boolean = annotations.hasAnnotation(ONLY_INPUT_TYPES_FQ_NAME)
+
+fun DeclarationDescriptor.getSinceVersion(): String? =
+        annotations.findAnnotation(SINCE_FQ_NAME)?.allValueArguments?.values?.single()?.value as? String
 
 fun getExactInAnnotations(): Annotations = AnnotationsWithOnly(EXACT_ANNOTATION_FQ_NAME)
 

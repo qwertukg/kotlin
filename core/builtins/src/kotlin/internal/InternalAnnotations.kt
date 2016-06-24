@@ -16,11 +16,13 @@
 
 package kotlin.internal
 
+import kotlin.annotation.AnnotationTarget.*
+
 /**
  * Specifies that the corresponding type parameter is not used for unsafe operations such as casts or 'is' checks
  * That means it's completely safe to use generic types as argument for such parameter.
  */
-@Target(AnnotationTarget.TYPE_PARAMETER)
+@Target(TYPE_PARAMETER)
 @Retention(AnnotationRetention.BINARY)
 internal annotation class PureReifiable
 
@@ -30,6 +32,14 @@ internal annotation class PureReifiable
  * For example MutableMap.remove(K, V) available only if corresponding
  * method 'java/util/Map.remove(Ljava/lang/Object;Ljava/lang/Object;)Z' is defined in JDK (i.e. for major versions >= 8)
  */
-@Target(AnnotationTarget.FUNCTION)
+@Target(FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 internal annotation class PlatformDependent
+
+/**
+ * Specifies the first version of Kotlin where a declaration has appeared.
+ * Using the declaration and specifying an older API version (via the `-api-version` command line option) will result in an error.
+ */
+@Target(CLASS, PROPERTY, CONSTRUCTOR, FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER)
+@Retention(AnnotationRetention.BINARY)
+internal annotation class Since(val version: String)

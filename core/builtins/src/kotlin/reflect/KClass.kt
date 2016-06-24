@@ -16,6 +16,8 @@
 
 package kotlin.reflect
 
+import kotlin.internal.Since
+
 /**
  * Represents a class and provides introspection capabilities.
  * Instances of this class are obtainable by the `::class` syntax.
@@ -61,6 +63,7 @@ public interface KClass<T : Any> : KDeclarationContainer, KAnnotatedElement, KCl
     /**
      * Returns `true` if [value] is an instance of this class on a given platform.
      */
+    @Since("1.1")
     public fun isInstance(value: Any?): Boolean
 
     /**

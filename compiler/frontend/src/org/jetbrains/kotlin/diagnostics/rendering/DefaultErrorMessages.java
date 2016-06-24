@@ -21,6 +21,7 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.kotlin.config.LanguageVersion;
 import org.jetbrains.kotlin.diagnostics.Diagnostic;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory;
 import org.jetbrains.kotlin.diagnostics.Errors;
@@ -294,6 +295,16 @@ public class DefaultErrorMessages {
 
         MAP.put(DEPRECATION, "''{0}'' is deprecated. {1}", DEPRECATION_RENDERER, STRING);
         MAP.put(DEPRECATION_ERROR, "Using ''{0}'' is an error. {1}", DEPRECATION_RENDERER, STRING);
+
+        MAP.put(API_NOT_AVAILABLE,
+                "This declaration is only available since Kotlin {0} and cannot be used with the specified API version {1}", TO_STRING,
+                new DiagnosticParameterRenderer<LanguageVersion>() {
+                    @NotNull
+                    @Override
+                    public String render(@NotNull LanguageVersion obj, @NotNull RenderingContext renderingContext) {
+                        return obj.getVersionString();
+                    }
+                });
 
         MAP.put(LOCAL_OBJECT_NOT_ALLOWED, "Named object ''{0}'' is a singleton and cannot be local. Try to use anonymous object instead", NAME);
         MAP.put(LOCAL_INTERFACE_NOT_ALLOWED, "''{0}'' is an interface so it cannot be local. Try to use anonymous object or abstract class instead", NAME);

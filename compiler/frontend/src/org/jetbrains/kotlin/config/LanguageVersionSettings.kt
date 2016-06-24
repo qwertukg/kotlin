@@ -17,6 +17,8 @@
 package org.jetbrains.kotlin.config
 
 import org.jetbrains.kotlin.config.LanguageVersion.KOTLIN_1_1
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.resolve.descriptorUtil.getSinceVersion
 
 enum class LanguageFeature(val sinceVersion: LanguageVersion) {
     // Note: names of these entries are also used in diagnostic tests
@@ -51,15 +53,31 @@ enum class LanguageVersion(val versionString: String) {
 
 interface LanguageVersionSettings {
     fun supportsFeature(feature: LanguageFeature): Boolean
+
+    val apiVersion: LanguageVersion
 }
 
-class LanguageVersionSettingsImpl(private val languageVersion: LanguageVersion) : LanguageVersionSettings {
+class LanguageVersionSettingsImpl(
+        private val languageVersion: LanguageVersion,
+        override val apiVersion: LanguageVersion
+) : LanguageVersionSettings {
     override fun supportsFeature(feature: LanguageFeature): Boolean {
-        return languageVersion.ordinal >= feature.sinceVersion.ordinal
+        return languageVersion >= feature.sinceVersion
     }
 
     companion object {
         @JvmField
-        val LATEST = LanguageVersionSettingsImpl(LanguageVersion.LATEST)
+        val LATEST = LanguageVersionSettingsImpl(LanguageVersion.LATEST, LanguageVersion.LATEST)
     }
+}
+
+fun LanguageVersionSettings.isAccessToDescriptorAllowed(descriptor: DeclarationDescriptor): Boolean {
+    // If there's no @Since annotation, allow the access
+    val versionString = descriptor.getSinceVersion() ?: return true
+
+    // If the value in @Since is not a valid Kotlin version, allow the access
+    val version = LanguageVersion.fromVersionString(versionString) ?: return true
+
+    // Otherwise allow the access iff the version in @Since is not greater than our API version
+    return apiVersion >= version
 }
