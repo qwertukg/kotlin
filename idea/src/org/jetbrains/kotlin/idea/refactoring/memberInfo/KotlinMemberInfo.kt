@@ -23,6 +23,7 @@ import com.intellij.refactoring.util.classMembers.MemberInfo
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.getRepresentativeLightMethod
 import org.jetbrains.kotlin.asJava.toLightClass
+import org.jetbrains.kotlin.asJava.unwrapped
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.MemberDescriptor
 import org.jetbrains.kotlin.descriptors.Modality
@@ -76,6 +77,13 @@ fun KotlinMemberInfo.toJavaMemberInfo(): MemberInfo? {
         else -> null
     }
     val info = MemberInfo(psiMember ?: return null, isSuperClass, null)
+    info.isToAbstract = isToAbstract
+    return info
+}
+
+fun MemberInfo.toKotlinMemberInfo(): KotlinMemberInfo? {
+    val declaration = member.unwrapped as? KtNamedDeclaration ?: return null
+    val info = KotlinMemberInfo(declaration, declaration is KtClass && overrides != null)
     info.isToAbstract = isToAbstract
     return info
 }

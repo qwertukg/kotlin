@@ -162,7 +162,7 @@ class MoveKotlinDeclarationsProcessor(
         }
 
         val usages = ArrayList<UsageInfo>()
-        val conflictChecker = MoveConflictChecker(project, elementsToMove, descriptor.moveTarget)
+        val conflictChecker = MoveConflictChecker(project, elementsToMove, descriptor.moveTarget, elementsToMove.first())
         for ((sourceFile, kotlinToLightElements) in kotlinToLightElementsBySourceFile) {
             kotlinToLightElements.keys.forEach {
                 if (descriptor.updateInternalReferences) {
