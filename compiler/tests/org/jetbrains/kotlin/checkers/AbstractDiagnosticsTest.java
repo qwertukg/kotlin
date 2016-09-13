@@ -203,7 +203,8 @@ public abstract class AbstractDiagnosticsTest extends BaseDiagnosticsTest {
             if (file.customLanguageVersionSettings != null) {
                 if (result != null) {
                     Assert.fail(
-                            "More than one file in the module has " + BaseDiagnosticsTest.LANGUAGE_DIRECTIVE + " directive specified. " +
+                            "More than one file in the module has " + BaseDiagnosticsTest.LANGUAGE_DIRECTIVE + " or " +
+                            BaseDiagnosticsTest.API_VERSION_DIRECTIVE + " directive specified. " +
                             "This is not supported. Please move all directives into one file"
                     );
                 }

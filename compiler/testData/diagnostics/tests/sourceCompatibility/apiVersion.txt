@@ -1,0 +1,41 @@
+package
+
+@kotlin.internal.Since(version = "1.1") public val p: kotlin.Unit
+@kotlin.internal.Since(version = "1.1") public fun f(): kotlin.Unit
+@kotlin.internal.Since(version = "1.0") public fun ok(): kotlin.Unit
+public fun t0(): kotlin.Unit
+public fun t1(): kotlin.Unit
+public fun t2(): kotlin.Unit
+public fun t3(): Foo
+public fun t4(): Foo
+public fun t5(): Bar?
+@Anno1(s = "") @Anno2() public fun t6(): kotlin.Unit
+
+@kotlin.internal.Since(version = "1.1") public final annotation class Anno1 : kotlin.Annotation {
+    public constructor Anno1(/*0*/ s: kotlin.String)
+    public final val s: kotlin.String
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public final annotation class Anno2 : kotlin.Annotation {
+    @kotlin.internal.Since(version = "1.1") public constructor Anno2()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public final class Bar {
+    @kotlin.internal.Since(version = "1.1") public constructor Bar()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+@kotlin.internal.Since(version = "1.1") public open class Foo {
+    public constructor Foo()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
