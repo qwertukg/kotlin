@@ -19,7 +19,7 @@ package org.jetbrains.kotlin.types.expressions
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.ReflectionTypes
 import org.jetbrains.kotlin.config.LanguageFeature
-import org.jetbrains.kotlin.config.LanguageFeatureSettings
+import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
@@ -73,7 +73,7 @@ class DoubleColonExpressionResolver(
         val dataFlowAnalyzer: DataFlowAnalyzer,
         val reflectionTypes: ReflectionTypes,
         val typeResolver: TypeResolver,
-        val languageFeatureSettings: LanguageFeatureSettings
+        val languageVersionSettings: LanguageVersionSettings
 ) {
     private lateinit var expressionTypingServices: ExpressionTypingServices
 
@@ -156,7 +156,7 @@ class DoubleColonExpressionResolver(
 
     private fun shouldTryResolveLHSAsExpression(expression: KtDoubleColonExpression): Boolean {
         // TODO: improve diagnostic when bound callable references are disabled
-        if (!languageFeatureSettings.supportsFeature(LanguageFeature.BoundCallableReferences)) return false
+        if (!languageVersionSettings.supportsFeature(LanguageFeature.BoundCallableReferences)) return false
 
         val lhs = expression.receiverExpression ?: return false
         return lhs.canBeConsideredProperExpression() && !expression.hasQuestionMarks /* TODO: test this */

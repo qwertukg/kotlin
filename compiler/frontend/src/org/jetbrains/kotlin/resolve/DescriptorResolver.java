@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.builtins.FunctionTypesKt;
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
 import org.jetbrains.kotlin.config.LanguageFeature;
-import org.jetbrains.kotlin.config.LanguageFeatureSettings;
+import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationSplitter;
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget;
@@ -80,7 +80,7 @@ public class DescriptorResolver {
     @NotNull private final VariableTypeResolver variableTypeResolver;
     @NotNull private final ExpressionTypingServices expressionTypingServices;
     @NotNull private final OverloadChecker overloadChecker;
-    @NotNull private final LanguageFeatureSettings languageFeatureSettings;
+    @NotNull private final LanguageVersionSettings languageVersionSettings;
     @NotNull private final FunctionsTypingVisitor functionsTypingVisitor;
 
     public DescriptorResolver(
@@ -92,7 +92,7 @@ public class DescriptorResolver {
             @NotNull VariableTypeResolver variableTypeResolver,
             @NotNull ExpressionTypingServices expressionTypingServices,
             @NotNull OverloadChecker overloadChecker,
-            @NotNull LanguageFeatureSettings languageFeatureSettings,
+            @NotNull LanguageVersionSettings languageVersionSettings,
             @NotNull FunctionsTypingVisitor functionsTypingVisitor
     ) {
         this.annotationResolver = annotationResolver;
@@ -103,7 +103,7 @@ public class DescriptorResolver {
         this.variableTypeResolver = variableTypeResolver;
         this.expressionTypingServices = expressionTypingServices;
         this.overloadChecker = overloadChecker;
-        this.languageFeatureSettings = languageFeatureSettings;
+        this.languageVersionSettings = languageVersionSettings;
         this.functionsTypingVisitor = functionsTypingVisitor;
     }
 
@@ -728,7 +728,7 @@ public class DescriptorResolver {
                     ErrorUtils.createErrorType(name.asString()),
                     ErrorUtils.createErrorType(name.asString()));
         }
-        else if (!languageFeatureSettings.supportsFeature(LanguageFeature.TypeAliases)) {
+        else if (!languageVersionSettings.supportsFeature(LanguageFeature.TypeAliases)) {
             typeResolver.resolveAbbreviatedType(scopeWithTypeParameters, typeReference, trace);
             PsiElement typeAliasKeyword = typeAlias.getTypeAliasKeyword();
             trace.report(UNSUPPORTED_TYPEALIAS.on(typeAliasKeyword != null ? typeAliasKeyword : typeAlias));

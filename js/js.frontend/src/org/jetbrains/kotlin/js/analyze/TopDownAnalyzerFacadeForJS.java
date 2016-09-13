@@ -78,7 +78,7 @@ public final class TopDownAnalyzerFacadeForJS {
         LazyTopDownAnalyzerForTopLevel analyzerForJs = InjectionKt.createTopDownAnalyzerForJs(
                 moduleContext, trace,
                 new FileBasedDeclarationProviderFactory(moduleContext.getStorageManager(), allFiles),
-                config.getConfiguration().get(CommonConfigurationKeys.LANGUAGE_FEATURE_SETTINGS, LanguageVersionSettingsImpl.LATEST)
+                config.getConfiguration().get(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, LanguageVersionSettingsImpl.LATEST)
         );
         analyzerForJs.analyzeFiles(TopDownAnalysisMode.TopLevelDeclarations, files, Collections.<PackageFragmentProvider>emptyList());
         return JsAnalysisResult.success(trace, moduleContext.getModule());

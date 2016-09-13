@@ -102,7 +102,7 @@ public enum TopDownAnalyzerFacadeForJVM {
                 GlobalSearchScope.allScope(project),
                 lookupTracker,
                 packagePartProvider,
-                configuration.get(CommonConfigurationKeys.LANGUAGE_FEATURE_SETTINGS, LanguageVersionSettingsImpl.LATEST)
+                configuration.get(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, LanguageVersionSettingsImpl.LATEST)
         );
 
         List<PackageFragmentProvider> additionalProviders = new ArrayList<PackageFragmentProvider>();
