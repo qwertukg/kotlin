@@ -17,19 +17,25 @@
 package org.jetbrains.kotlin.idea;
 
 import com.intellij.codeInsight.daemon.DaemonAnalyzerTestCase;
+import com.intellij.concurrency.IdeaForkJoinWorkerThreadFactory;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.testFramework.ThreadTracker;
 import org.jetbrains.kotlin.test.KotlinTestUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.ForkJoinPool;
 
 abstract public class KotlinDaemonAnalyzerTestCase extends DaemonAnalyzerTestCase {
     @Override
     protected void setUp() throws Exception {
+        IdeaForkJoinWorkerThreadFactory.setupForkJoinCommonPool();
+        System.out.println("Before base setup: " + ForkJoinPool.commonPool().getFactory().getClass());
         VfsRootAccess.allowRootAccess(KotlinTestUtils.getHomeDirectory());
+
         super.setUp();
 
+        System.out.println("Before: " + ForkJoinPool.commonPool().getFactory().getClass());
         System.out.println("Before: " + System.getProperty("java.util.concurrent.ForkJoinPool.common.threadFactory"));
         printThreadNames();
     }
@@ -51,6 +57,7 @@ abstract public class KotlinDaemonAnalyzerTestCase extends DaemonAnalyzerTestCas
         }
         catch (AssertionError ae) {
             System.out.println("BBB!!!");
+            System.out.println("After: " + ForkJoinPool.commonPool().getFactory().getClass());
             System.out.println("After: " + System.getProperty("java.util.concurrent.ForkJoinPool.common.threadFactory"));
             printThreadNames();
             throw ae;
