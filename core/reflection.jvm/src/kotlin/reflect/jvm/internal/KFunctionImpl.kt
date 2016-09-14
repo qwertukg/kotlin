@@ -48,10 +48,14 @@ internal class KFunctionImpl private constructor(
 
     private fun isDeclared(): Boolean = Visibilities.isPrivate(descriptor.visibility)
 
-    override val caller: FunctionCaller<*> by ReflectProperties.lazySoft {
+    override val caller: FunctionCaller<*> by ReflectProperties.lazySoft caller@ {
         val jvmSignature = RuntimeTypeMapper.mapSignature(descriptor)
         val member: Member? = when (jvmSignature) {
-            is KotlinConstructor -> container.findConstructorBySignature(jvmSignature.constructorDesc, isDeclared())
+            is KotlinConstructor -> {
+                val container = container as KClassImpl<*>
+                if (container.isAnnotation) return@caller FunctionCaller.AnnotationConstructor(container, parameters.map { it.name!! })
+                container.findConstructorBySignature(jvmSignature.constructorDesc, isDeclared())
+            }
             is KotlinFunction -> container.findMethodBySignature(jvmSignature.methodName, jvmSignature.methodDesc, isDeclared())
             is JavaMethod -> jvmSignature.method
             is JavaConstructor -> jvmSignature.constructor
@@ -76,7 +80,7 @@ internal class KFunctionImpl private constructor(
         val member: Member? = when (jvmSignature) {
             is KotlinFunction -> {
                 container.findDefaultMethod(jvmSignature.methodName, jvmSignature.methodDesc,
-                                            !Modifier.isStatic(caller.member.modifiers), isDeclared())
+                                            !Modifier.isStatic(caller.member!!.modifiers), isDeclared())
             }
             is KotlinConstructor -> {
                 container.findDefaultConstructor(jvmSignature.constructorDesc, isDeclared())

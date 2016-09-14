@@ -18,6 +18,9 @@ package org.jetbrains.kotlin.serialization.builtins
 
 import java.io.File
 
+@Foo("")
+fun foo() {}
+
 fun main(args: Array<String>) {
     System.setProperty("java.awt.headless", "true")
 

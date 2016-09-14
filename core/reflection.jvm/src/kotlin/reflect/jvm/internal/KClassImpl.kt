@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.serialization.deserialization.findClassAcrossModuleDependencies
+import java.lang.UnsupportedOperationException
 import kotlin.jvm.internal.TypeIntrinsics
 import kotlin.reflect.*
 import kotlin.reflect.jvm.internal.KDeclarationContainerImpl.MemberBelonginess.DECLARED
@@ -170,11 +171,13 @@ internal class KClassImpl<T : Any>(override val jClass: Class<T>) : KDeclaration
     override val constructorDescriptors: Collection<ConstructorDescriptor>
         get() {
             val descriptor = descriptor
-            if (descriptor.kind == ClassKind.CLASS || descriptor.kind == ClassKind.ENUM_CLASS) {
-                return descriptor.constructors
+            if (descriptor.kind == ClassKind.INTERFACE || descriptor.kind == ClassKind.OBJECT) {
+                return emptyList()
             }
-            return emptyList()
+            return descriptor.constructors
         }
+
+    internal val isAnnotation: Boolean get() = descriptor.kind == ClassKind.ANNOTATION_CLASS
 
     override fun getProperties(name: Name): Collection<PropertyDescriptor> =
             (memberScope.getContributedVariables(name, NoLookupLocation.FROM_REFLECTION) +

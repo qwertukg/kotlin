@@ -16,14 +16,17 @@
 
 package kotlin.reflect.jvm.internal
 
+import java.lang.IllegalArgumentException
 import java.lang.reflect.Member
 import java.lang.reflect.Modifier
+import java.lang.reflect.Proxy
 import java.lang.reflect.Type
+import kotlin.reflect.KotlinReflectionInternalError
 import java.lang.reflect.Constructor as ReflectConstructor
 import java.lang.reflect.Field as ReflectField
 import java.lang.reflect.Method as ReflectMethod
 
-internal abstract class FunctionCaller<out M : Member>(
+internal abstract class FunctionCaller<out M : Member?>(
         internal val member: M,
         internal val returnType: Type,
         internal val instanceClass: Class<*>?,
@@ -45,7 +48,7 @@ internal abstract class FunctionCaller<out M : Member>(
     }
 
     protected fun checkObjectInstance(obj: Any?) {
-        if (obj == null || !member.declaringClass.isInstance(obj)) {
+        if (obj == null || !member!!.declaringClass.isInstance(obj)) {
             throw IllegalArgumentException("An object member requires the object instance passed as the first argument.")
         }
     }
@@ -64,6 +67,53 @@ internal abstract class FunctionCaller<out M : Member>(
         override fun call(args: Array<*>): Any? {
             checkArguments(args)
             return member.newInstance(*args)
+        }
+    }
+
+    class AnnotationConstructor(klass: KClassImpl<*>, private val parameterNames: List<String>) : FunctionCaller<Nothing?>(
+            null, klass.jClass, null,
+            klass.jClass.let { jClass ->
+                // TODO: do not allow using this for Java annotations
+                // TODO: these are names of parameter descriptors, not JVM names of the corresponding methods
+                parameterNames.map { name ->
+                    jClass.getDeclaredMethod(name).genericReturnType
+                }.toTypedArray()
+            }
+    ) {
+        private val jClass = returnType as Class<*>
+
+        // TODO: combine with the code above and fix those TODOs here as well
+        private val erasedParameterTypes = parameterNames.map { name ->
+            jClass.getDeclaredMethod(name).returnType
+        }
+
+        override fun call(args: Array<*>): Any? {
+            // TODO: test?
+            checkArguments(args)
+
+            val values = args.mapIndexed { index, arg ->
+                val value = when (arg) {
+                    // TODO: improve message and test this exact exception
+                    is Class<*> -> throw IllegalArgumentException("Annotation constructor takes KClass (not Class) instances as arguments")
+                    is KClassImpl<*> -> arg.java
+                    else -> arg
+                }
+                if (!erasedParameterTypes[index].isInstance(value)) {
+                    // TODO: think over if using KClass.isInstance here would make any difference
+                    // TODO: improve message + test?
+                    throw IllegalArgumentException("Argument $index is not of the required type ${erasedParameterTypes[index]}")
+                }
+                value
+            }
+
+            return Proxy.newProxyInstance(jClass.classLoader /* TODO: test */, arrayOf(jClass)) { proxy, method, args ->
+                // TODO: support equals, hashCode, toString, annotationType
+
+                val index = parameterNames.indexOf(method.name)
+                if (index < 0) throw KotlinReflectionInternalError("Method is not supported: $method (args: ${args.orEmpty().toList()})")
+
+                values[index]
+            }
         }
     }
 
