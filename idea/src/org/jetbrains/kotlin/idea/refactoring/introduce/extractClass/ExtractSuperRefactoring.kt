@@ -69,21 +69,23 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import java.util.*
 
-data class ExtractSuperclassInfo(
+data class ExtractSuperInfo(
         val originalClass: KtClassOrObject,
         val memberInfos: Collection<KotlinMemberInfo>,
         val targetParent: PsiElement,
         val newClassName: String,
+        val isInterface: Boolean,
         val docPolicy: DocCommentPolicy<*>
 )
 
-class ExtractSuperclassRefactoring(
-        private var extractInfo: ExtractSuperclassInfo
+class ExtractSuperRefactoring(
+        private var extractInfo: ExtractSuperInfo
 ) {
     companion object {
         private fun getElementsToMove(
                 memberInfos: Collection<KotlinMemberInfo>,
                 originalClass: KtClassOrObject,
+                isExtractInterface: Boolean,
                 project: Project
         ): Map<KtElement, KotlinMemberInfo?> {
             val elementsToMove = LinkedHashMap<KtElement, KotlinMemberInfo?>()
@@ -106,7 +108,7 @@ class ExtractSuperclassRefactoring(
                                         ?: continue
                         val superClassDescriptor = superType.constructor.declarationDescriptor ?: continue
                         val superClass = DescriptorToSourceUtilsIde.getAnyDeclaration(project, superClassDescriptor) as? KtClass ?: continue
-                        if (!superClass.isInterface() || superClass in superInterfacesToMove) {
+                        if ((!isExtractInterface && !superClass.isInterface()) || superClass in superInterfacesToMove) {
                             elementsToMove[superTypeListEntry] = null
                         }
                     }
@@ -118,13 +120,14 @@ class ExtractSuperclassRefactoring(
         fun collectConflicts(
                 originalClass: KtClassOrObject,
                 memberInfos: List<KotlinMemberInfo>,
-                targetParent: PsiElement
+                targetParent: PsiElement,
+                isExtractInterface: Boolean
         ): MultiMap<PsiElement, String> {
             val conflicts = MultiMap<PsiElement, String>()
 
             val project = originalClass.project
 
-            val elementsToMove = getElementsToMove(memberInfos, originalClass, project).keys
+            val elementsToMove = getElementsToMove(memberInfos, originalClass, isExtractInterface, project).keys
 
             val moveTarget = if (targetParent is PsiDirectory) {
                 val targetPackage = targetParent.getPackage() ?: return conflicts
@@ -183,7 +186,7 @@ class ExtractSuperclassRefactoring(
                 collectTypeParameters(refTarget)
             }
         }
-        getElementsToMove(extractInfo.memberInfos, extractInfo.originalClass, project)
+        getElementsToMove(extractInfo.memberInfos, extractInfo.originalClass, extractInfo.isInterface, project)
                 .asSequence()
                 .flatMap {
                     val (element, info) = it
@@ -198,17 +201,21 @@ class ExtractSuperclassRefactoring(
         val originalClass = extractInfo.originalClass
 
         val newClass = if (targetParent is PsiDirectory) {
-            val template = FileTemplateManager.getInstance(project).getInternalTemplate("Kotlin Class")
+            val templateName = if (extractInfo.isInterface) "Kotlin Interface" else "Kotlin Class"
+            val template = FileTemplateManager.getInstance(project).getInternalTemplate(templateName)
             val newFile = NewKotlinFileAction.createFileFromTemplate(newClassName, template, targetParent) as KtFile
             newFile.declarations.firstIsInstance<KtClass>()
         }
         else {
             val targetSibling = originalClass.parentsWithSelf.first { it.parent == targetParent }
-            insertDeclaration(psiFactory.createClass("class $newClassName {\n\n}"), targetSibling)
+            val kind = if (extractInfo.isInterface) "interface" else "class"
+            insertDeclaration(psiFactory.createClass("$kind $newClassName {\n\n}"), targetSibling)
         }
 
         val shouldBeAbstract = extractInfo.memberInfos.any { it.isToAbstract }
-        newClass.addModifier(if (shouldBeAbstract) KtTokens.ABSTRACT_KEYWORD else KtTokens.OPEN_KEYWORD)
+        if (!extractInfo.isInterface) {
+            newClass.addModifier(if (shouldBeAbstract) KtTokens.ABSTRACT_KEYWORD else KtTokens.OPEN_KEYWORD)
+        }
 
         if (typeParameters.isNotEmpty()) {
             val typeParameterListText = typeParameters.sortedBy { it.startOffset }.map { it.text }.joinToString(prefix = "<", postfix = ">")
@@ -226,10 +233,11 @@ class ExtractSuperclassRefactoring(
                 append(typeParameters.sortedBy { it.startOffset }.map { it.name }.joinToString(prefix = "<", postfix = ">"))
             }
         }
-        val needSuperCall = superClassEntry is KtSuperTypeCallEntry
+        val needSuperCall = !extractInfo.isInterface
+                            && (superClassEntry is KtSuperTypeCallEntry
                             || originalClass.hasPrimaryConstructor()
-                            || originalClass.getSecondaryConstructors().isEmpty()
-        val newSuperTypeCallEntry = if (needSuperCall) {
+                            || originalClass.getSecondaryConstructors().isEmpty())
+        val newSuperTypeListEntry = if (needSuperCall) {
             psiFactory.createSuperTypeCallEntry("$superTypeText()")
         }
         else {
@@ -244,10 +252,10 @@ class ExtractSuperclassRefactoring(
             }
             else superClassEntry
             newClass.addSuperTypeListEntry(superClassEntryToAdd)
-            ShortenReferences.DEFAULT.process(superClassEntry.replaced(newSuperTypeCallEntry))
+            ShortenReferences.DEFAULT.process(superClassEntry.replaced(newSuperTypeListEntry))
         }
         else {
-            ShortenReferences.DEFAULT.process(originalClass.addSuperTypeListEntry(newSuperTypeCallEntry))
+            ShortenReferences.DEFAULT.process(originalClass.addSuperTypeListEntry(newSuperTypeListEntry))
         }
 
         ShortenReferences.DEFAULT.process(newClass)
@@ -257,6 +265,8 @@ class ExtractSuperclassRefactoring(
 
     fun performRefactoring(editor: Editor?) {
         val superClassEntry = runReadAction {
+            if (extractInfo.isInterface) return@runReadAction null
+
             val originalClass = extractInfo.originalClass
             val originalClassDescriptor = originalClass.resolveToDescriptor() as ClassDescriptor
             val superClassDescriptor = originalClassDescriptor.getSuperClassNotAny()

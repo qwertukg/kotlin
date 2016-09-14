@@ -21,21 +21,24 @@ import com.intellij.refactoring.HelpID
 import com.intellij.refactoring.JavaRefactoringSettings
 import com.intellij.refactoring.RefactoringBundle
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractClass.ExtractSuperInfo
-import org.jetbrains.kotlin.idea.refactoring.introduce.extractClass.KotlinExtractSuperclassHandler
+import org.jetbrains.kotlin.idea.refactoring.introduce.extractClass.KotlinExtractInterfaceHandler
 import org.jetbrains.kotlin.idea.refactoring.memberInfo.KotlinMemberInfo
 import org.jetbrains.kotlin.idea.refactoring.memberInfo.extractClassMembers
+import org.jetbrains.kotlin.idea.refactoring.pullUp.mustBeAbstractInInterface
+import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 
-class KotlinExtractSuperclassDialog(
+class KotlinExtractInterfaceDialog(
         originalClass: KtClassOrObject,
         targetParent: PsiElement,
         conflictChecker: (KotlinExtractSuperDialogBase) -> Boolean,
         refactoring: (ExtractSuperInfo) -> Unit
-) : KotlinExtractSuperDialogBase(originalClass, targetParent, conflictChecker, false, KotlinExtractSuperclassHandler.REFACTORING_NAME, refactoring) {
+) : KotlinExtractSuperDialogBase(originalClass, targetParent, conflictChecker, true, KotlinExtractInterfaceHandler.REFACTORING_NAME, refactoring) {
     companion object {
-        private val DESTINATION_PACKAGE_RECENT_KEY = "KotlinExtractSuperclassDialog.RECENT_KEYS"
+        private val DESTINATION_PACKAGE_RECENT_KEY = "KotlinExtractInterfaceDialog.RECENT_KEYS"
     }
 
     init {
@@ -43,31 +46,37 @@ class KotlinExtractSuperclassDialog(
     }
 
     override fun createMemberInfoModel(): MemberInfoModelBase {
-        return object : MemberInfoModelBase(extractClassMembers(originalClass)) {
+        val extractableMemberInfos = extractClassMembers(originalClass).filterNot {
+            val member = it.member
+            member is KtClass && member.hasModifier(KtTokens.INNER_KEYWORD)
+        }
+        return object : MemberInfoModelBase(extractableMemberInfos) {
             override fun isAbstractEnabled(memberInfo: KotlinMemberInfo): Boolean {
                 val member = memberInfo.member
-                return member is KtNamedFunction || member is KtProperty
+                return member is KtNamedFunction || (member is KtProperty && !member.mustBeAbstractInInterface())
             }
+
+            override fun isAbstractWhenDisabled(member: KotlinMemberInfo) = member.member is KtProperty
         }
     }
 
     override fun getDestinationPackageRecentKey() = DESTINATION_PACKAGE_RECENT_KEY
 
-    override fun getClassNameLabelText() = RefactoringBundle.message("superclass.name")!!
+    override fun getClassNameLabelText() = RefactoringBundle.message("interface.name.prompt")!!
 
-    override fun getPackageNameLabelText() = RefactoringBundle.message("package.for.new.superclass")!!
+    override fun getPackageNameLabelText() = RefactoringBundle.message("package.for.new.interface")!!
 
-    override fun getEntityName() = RefactoringBundle.message("ExtractSuperClass.superclass")!!
+    override fun getEntityName() = RefactoringBundle.message("extractSuperInterface.interface")!!
 
-    override fun getTopLabelText() = RefactoringBundle.message("extract.superclass.from")!!
+    override fun getTopLabelText() = RefactoringBundle.message("extract.interface.from")!!
 
-    override fun getDocCommentPolicySetting() = JavaRefactoringSettings.getInstance().EXTRACT_SUPERCLASS_JAVADOC
+    override fun getDocCommentPolicySetting() = JavaRefactoringSettings.getInstance().EXTRACT_INTERFACE_JAVADOC
 
     override fun setDocCommentPolicySetting(policy: Int) {
-        JavaRefactoringSettings.getInstance().EXTRACT_SUPERCLASS_JAVADOC = policy
+        JavaRefactoringSettings.getInstance().EXTRACT_INTERFACE_JAVADOC = policy
     }
 
-    override fun getExtractedSuperNameNotSpecifiedMessage() = RefactoringBundle.message("no.superclass.name.specified")!!
+    override fun getExtractedSuperNameNotSpecifiedMessage() = RefactoringBundle.message("no.interface.name.specified")!!
 
-    override fun getHelpId() = HelpID.EXTRACT_SUPERCLASS
+    override fun getHelpId() = HelpID.EXTRACT_INTERFACE
 }

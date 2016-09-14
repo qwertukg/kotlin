@@ -19,32 +19,17 @@ package org.jetbrains.kotlin.idea.refactoring.introduce.extractClass
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.intellij.refactoring.HelpID
-import com.intellij.refactoring.RefactoringBundle
 import com.intellij.refactoring.util.CommonRefactoringUtil
-import org.jetbrains.kotlin.idea.refactoring.introduce.extractClass.ui.KotlinExtractSuperclassDialog
-import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.idea.refactoring.introduce.extractClass.ui.KotlinExtractInterfaceDialog
 import org.jetbrains.kotlin.psi.KtClassOrObject
 
-object KotlinExtractSuperclassHandler : KotlinExtractSuperHandlerBase(false) {
-    val REFACTORING_NAME = "Extract Superclass"
-
-    private fun getErrorMessage(klass: KtClassOrObject): String? {
-        if (klass is KtClass) {
-            if (klass.isInterface()) return RefactoringBundle.message("superclass.cannot.be.extracted.from.an.interface")
-            if (klass.isEnum()) return RefactoringBundle.message("superclass.cannot.be.extracted.from.an.enum")
-        }
-        return null
-    }
+object KotlinExtractInterfaceHandler : KotlinExtractSuperHandlerBase(true) {
+    val REFACTORING_NAME = "Extract Interface"
 
     override fun doInvoke(klass: KtClassOrObject, targetParent: PsiElement, project: Project, editor: Editor?) {
         if (!CommonRefactoringUtil.checkReadOnlyStatus(project, klass)) return
 
-        getErrorMessage(klass)?.let {
-            CommonRefactoringUtil.showErrorHint(project, editor, RefactoringBundle.getCannotRefactorMessage(it), REFACTORING_NAME, HelpID.EXTRACT_SUPERCLASS)
-        }
-
-        KotlinExtractSuperclassDialog(
+        KotlinExtractInterfaceDialog(
                 originalClass = klass,
                 targetParent = targetParent,
                 conflictChecker = { checkConflicts(klass, it) },
