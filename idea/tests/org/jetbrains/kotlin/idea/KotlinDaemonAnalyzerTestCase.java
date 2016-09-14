@@ -17,9 +17,10 @@
 package org.jetbrains.kotlin.idea;
 
 import com.intellij.codeInsight.daemon.DaemonAnalyzerTestCase;
-import com.intellij.concurrency.IdeaForkJoinWorkerThreadFactory;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.testFramework.ThreadTracker;
+import org.jetbrains.kotlin.idea.test.RunnableWithException;
+import org.jetbrains.kotlin.idea.test.TestUtilsKt;
 import org.jetbrains.kotlin.test.KotlinTestUtils;
 
 import java.util.ArrayList;
@@ -53,7 +54,12 @@ abstract public class KotlinDaemonAnalyzerTestCase extends DaemonAnalyzerTestCas
     @Override
     protected void tearDown() throws Exception {
         try {
-            super.tearDown();
+            TestUtilsKt.patchThreadTracker(new RunnableWithException() {
+                @Override
+                public void run() throws Exception {
+                    KotlinDaemonAnalyzerTestCase.super.tearDown();
+                }
+            });
         }
         catch (AssertionError ae) {
             System.out.println("BBB!!!");
