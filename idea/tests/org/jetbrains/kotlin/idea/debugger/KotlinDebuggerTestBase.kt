@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.idea.debugger
 
-import com.intellij.concurrency.IdeaForkJoinWorkerThreadFactory
 import com.intellij.debugger.DebuggerInvocationUtil
 import com.intellij.debugger.SourcePosition
 import com.intellij.debugger.actions.MethodSmartStepTarget
@@ -46,7 +45,6 @@ import com.intellij.xdebugger.XDebuggerUtil
 import com.intellij.xdebugger.breakpoints.*
 import org.jetbrains.java.debugger.breakpoints.properties.JavaBreakpointProperties
 import org.jetbrains.java.debugger.breakpoints.properties.JavaLineBreakpointProperties
-import org.jetbrains.kotlin.idea.KotlinDaemonAnalyzerTestCase
 import org.jetbrains.kotlin.idea.debugger.breakpoints.KotlinFieldBreakpoint
 import org.jetbrains.kotlin.idea.debugger.breakpoints.KotlinFieldBreakpointType
 import org.jetbrains.kotlin.idea.debugger.breakpoints.KotlinLineBreakpointType
@@ -57,8 +55,6 @@ import org.jetbrains.kotlin.psi.psiUtil.getElementTextWithContext
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
 import org.jetbrains.kotlin.test.InTextDirectivesUtils.findStringWithPrefixes
 import java.io.File
-import java.lang.AssertionError
-import java.util.concurrent.ForkJoinPool
 import javax.swing.SwingUtilities
 
 abstract class KotlinDebuggerTestBase : KotlinDebuggerTestCase() {
@@ -75,28 +71,8 @@ abstract class KotlinDebuggerTestBase : KotlinDebuggerTestCase() {
         saveDefaultSettings()
     }
 
-    override fun setUp() {
-        IdeaForkJoinWorkerThreadFactory.setupForkJoinCommonPool()
-        println("Before base setup: " + ForkJoinPool.commonPool().factory.javaClass)
-
-        super.setUp()
-        KotlinDaemonAnalyzerTestCase.printThreadNames()
-
-        println("Before: " + ForkJoinPool.commonPool().factory.javaClass)
-        println("Before: ${System.getProperty("java.util.concurrent.ForkJoinPool.common.threadFactory")}")
-    }
-
     override fun tearDown() {
-        println("After AAA!!!: ${System.getProperty("java.util.concurrent.ForkJoinPool.common.threadFactory")}")
-        println("After AAA!!!: " + ForkJoinPool.commonPool().factory.javaClass)
-        try {
-            super.tearDown()
-        }
-        catch (ae: java.lang.AssertionError) {
-            println("AAA!!!")
-            KotlinDaemonAnalyzerTestCase.printThreadNames()
-            throw ae
-        }
+        super.tearDown()
         restoreDefaultSettings()
     }
 
