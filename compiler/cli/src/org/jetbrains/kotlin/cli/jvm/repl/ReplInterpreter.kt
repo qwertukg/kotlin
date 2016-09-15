@@ -44,10 +44,12 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtScript
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
+import org.jetbrains.kotlin.script.KotlinScriptDefinitionFromTemplate
 import org.jetbrains.kotlin.script.ScriptParameter
 import org.jetbrains.kotlin.script.StandardScriptDefinition
 import java.io.PrintWriter
 import java.net.URLClassLoader
+import kotlin.reflect.KClass
 
 class ReplInterpreter(
         disposable: Disposable,
@@ -184,14 +186,8 @@ class ReplInterpreter(
 
     companion object {
         private val SCRIPT_RESULT_FIELD_NAME = "\$\$result"
-        private val REPL_LINE_AS_SCRIPT_DEFINITION = object : KotlinScriptDefinition {
+        private val REPL_LINE_AS_SCRIPT_DEFINITION = object : KotlinScriptDefinitionFromTemplate(ReplScriptTemplate::class) {
             override val name = "Kotlin REPL"
-
-            override fun getScriptParameters(scriptDescriptor: ScriptDescriptor): List<ScriptParameter> = emptyList()
-
-            override fun <TF> isScript(file: TF): Boolean = StandardScriptDefinition.isScript(file)
-
-            override fun getScriptName(script: KtScript): Name = StandardScriptDefinition.getScriptName(script)
         }
 
         private fun renderStackTrace(cause: Throwable, startFromMethodName: String): String {
@@ -232,6 +228,8 @@ class ReplInterpreter(
             )
         }
     }
+
+    private abstract class ReplScriptTemplate
 }
 
 sealed class LineResult {
