@@ -319,7 +319,7 @@ public class Visibilities {
 
         if (what instanceof TypeAliasConstructorDescriptor) {
             DeclarationDescriptorWithVisibility invisibleMember =
-                    findInvisibleMember(receiver, ((TypeAliasConstructorDescriptor) what).getTypeAliasDescriptor(), from);
+                    findInvisibleMember(receiver, ((TypeAliasConstructorDescriptor) what).getContainingDeclaration(), from);
 
             if (invisibleMember != null) return invisibleMember;
         }

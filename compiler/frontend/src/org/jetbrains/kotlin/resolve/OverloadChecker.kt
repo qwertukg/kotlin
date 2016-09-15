@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.resolve
 
 import com.intellij.util.containers.MultiMap
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptor
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.name.Name
@@ -91,6 +92,7 @@ class OverloadChecker(val specificityComparator: TypeSpecificityComparator) {
                     else
                         DeclarationCategory.TYPE_OR_VALUE
                 is ConstructorDescriptor,
+                is TypeAliasConstructorDescriptor,
                 is SimpleFunctionDescriptor ->
                     DeclarationCategory.FUNCTION
                 is ClassifierDescriptor ->
